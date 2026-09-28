@@ -26,7 +26,6 @@ At the start, my prompts only described what I wanted the app to do. Partway thr
 The biggest surprise was that Copilot built features before I asked for them. When I asked for a search bar and category filter, Copilot told me they were already implemented, and it had even added a status filter I never requested. It also suggested next steps on its own, like adding localStorage and a campus color theme. I was also surprised that Copilot on GitHub could commit changes straight to my repository, so I barely had to copy and paste code.
 
 ![Prompt 4](prompt4.png)
-![Files Copilot committed to the repo](repo-files.png)
 
 ## 4. What did you learn about the technology you used that you didn't know before?
 
