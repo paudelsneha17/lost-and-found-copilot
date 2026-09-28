@@ -22,6 +22,10 @@ function loadListings() {
   if (stored) {
     try {
       listings = JSON.parse(stored);
+      listings = listings.map((item) => ({
+        ...item,
+        claimed: Boolean(item.claimed)
+      }));
     } catch (e) {
       console.error('Error loading listings from localStorage:', e);
       listings = getDefaultListings();
@@ -64,10 +68,10 @@ function getTimeAgo(dateString) {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   itemDate.setHours(0, 0, 0, 0);
-  
+
   const diffTime = today - itemDate;
   const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-  
+
   if (diffDays === 0) return 'Today';
   if (diffDays === 1) return 'Yesterday';
   if (diffDays < 7) return `${diffDays} days ago`;
@@ -78,7 +82,7 @@ function renderListings() {
   const query = searchInput.value.toLowerCase().trim();
   const category = categoryFilter.value;
   const status = statusFilter.value;
-  
+
   const filtered = listings.filter((item) => {
     const searchable = `${item.name} ${item.location} ${item.description}`.toLowerCase();
     return (
@@ -89,7 +93,9 @@ function renderListings() {
   });
 
   listingGrid.innerHTML = filtered
-    .map((item, index) => `
+    .map((item) => {
+      const actualIndex = listings.indexOf(item);
+      return `
     <article class="listing-card ${item.claimed ? 'claimed' : ''}">
       <div class="item-visual ${item.color}">
         <span class="status ${item.status}">${item.status.toUpperCase()}</span>
@@ -105,25 +111,24 @@ function renderListings() {
         <div class="item-footer">
           <span>${item.description}</span>
           <div class="item-actions">
-            <button class="btn-claimed" data-index="${index}" type="button">
+            <button class="btn-claimed" data-index="${actualIndex}" type="button">
               ${item.claimed ? '✓ Claimed' : 'Mark as Claimed'}
             </button>
-            <button class="btn-delete" data-index="${index}" data-name="${item.name}" type="button">Delete</button>
+            <button class="btn-delete" data-index="${actualIndex}" data-name="${item.name}" type="button">Delete</button>
           </div>
         </div>
       </div>
-    </article>`
-    )
+    </article>`;
+    })
     .join('');
 
-  // Attach event listeners
-  document.querySelectorAll('.btn-claimed').forEach(btn => {
-    btn.addEventListener('click', (e) => toggleClaimed(parseInt(e.target.dataset.index)));
+  document.querySelectorAll('.btn-claimed').forEach((btn) => {
+    btn.addEventListener('click', (e) => toggleClaimed(parseInt(e.target.dataset.index, 10)));
   });
 
-  document.querySelectorAll('.btn-delete').forEach(btn => {
+  document.querySelectorAll('.btn-delete').forEach((btn) => {
     btn.addEventListener('click', (e) => {
-      const index = parseInt(e.target.dataset.index);
+      const index = parseInt(e.target.dataset.index, 10);
       const name = e.target.dataset.name;
       showDeleteConfirmation(index, name);
     });
@@ -134,18 +139,19 @@ function renderListings() {
 }
 
 function toggleClaimed(index) {
+  if (index < 0 || index >= listings.length) return;
   listings[index].claimed = !listings[index].claimed;
   saveListings();
   renderListings();
 }
 
 function showDeleteConfirmation(index, itemName) {
-  const confirmDelete = confirm(`Are you sure you want to delete "${itemName}"? This action cannot be undone.`);
-  if (confirmDelete) {
-    listings.splice(index, 1);
-    saveListings();
-    renderListings();
-  }
+  const confirmDelete = window.confirm(`Are you sure you want to delete "${itemName}"? This action cannot be undone.`);
+  if (!confirmDelete) return;
+
+  listings.splice(index, 1);
+  saveListings();
+  renderListings();
 }
 
 // Clear all filters
