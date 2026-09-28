@@ -34,12 +34,12 @@ function loadListings() {
 // Get default sample listings
 function getDefaultListings() {
   return [
-    { name: 'Blue Hydro Flask', category: 'other', status: 'found', location: 'Library, 2nd floor', date: '2024-12-18', icon: '💧', color: 'blue', description: 'Blue 32oz bottle with a small sticker.' },
-    { name: 'Wireless Earbuds', category: 'electronics', status: 'lost', location: 'Science Hall, Room 204', date: '2024-12-17', icon: '🎧', color: 'yellow', description: 'White case, left earbud missing.' },
-    { name: 'Black Canvas Backpack', category: 'other', status: 'found', location: 'Student Union', date: '2024-12-16', icon: '🎒', color: 'mint', description: 'Black backpack with a green keychain.' },
-    { name: 'Silver Watch', category: 'other', status: 'lost', location: 'Recreation Center', date: '2024-12-15', icon: '⌚', color: 'pink', description: 'Silver watch with a dark leather strap.' },
-    { name: 'Green Knit Beanie', category: 'clothing', status: 'found', location: 'Arts Building lobby', date: '2024-12-15', icon: '🧢', color: 'purple', description: 'Forest green, one-size knit beanie.' },
-    { name: 'Student ID Card', category: 'keys-id', status: 'lost', location: 'Main quad', date: '2024-12-14', icon: '🆔', color: 'blue', description: 'Student ID in a clear plastic sleeve.' }
+    { name: 'Blue Hydro Flask', category: 'other', status: 'found', location: 'Library, 2nd floor', date: '2024-12-18', icon: '💧', color: 'blue', description: 'Blue 32oz bottle with a small sticker.', claimed: false },
+    { name: 'Wireless Earbuds', category: 'electronics', status: 'lost', location: 'Science Hall, Room 204', date: '2024-12-17', icon: '🎧', color: 'yellow', description: 'White case, left earbud missing.', claimed: false },
+    { name: 'Black Canvas Backpack', category: 'other', status: 'found', location: 'Student Union', date: '2024-12-16', icon: '🎒', color: 'mint', description: 'Black backpack with a green keychain.', claimed: false },
+    { name: 'Silver Watch', category: 'other', status: 'lost', location: 'Recreation Center', date: '2024-12-15', icon: '⌚', color: 'pink', description: 'Silver watch with a dark leather strap.', claimed: false },
+    { name: 'Green Knit Beanie', category: 'clothing', status: 'found', location: 'Arts Building lobby', date: '2024-12-15', icon: '🧢', color: 'purple', description: 'Forest green, one-size knit beanie.', claimed: false },
+    { name: 'Student ID Card', category: 'keys-id', status: 'lost', location: 'Main quad', date: '2024-12-14', icon: '🆔', color: 'blue', description: 'Student ID in a clear plastic sleeve.', claimed: false }
   ];
 }
 
@@ -89,12 +89,12 @@ function renderListings() {
   });
 
   listingGrid.innerHTML = filtered
-    .map(
-      (item) => `
-    <article class="listing-card">
+    .map((item, index) => `
+    <article class="listing-card ${item.claimed ? 'claimed' : ''}">
       <div class="item-visual ${item.color}">
         <span class="status ${item.status}">${item.status.toUpperCase()}</span>
         <span aria-hidden="true">${item.icon}</span>
+        ${item.claimed ? '<span class="claimed-badge">✓ CLAIMED</span>' : ''}
       </div>
       <div class="item-info">
         <h3>${item.name}</h3>
@@ -104,14 +104,48 @@ function renderListings() {
         </p>
         <div class="item-footer">
           <span>${item.description}</span>
+          <div class="item-actions">
+            <button class="btn-claimed" data-index="${index}" type="button">
+              ${item.claimed ? '✓ Claimed' : 'Mark as Claimed'}
+            </button>
+            <button class="btn-delete" data-index="${index}" data-name="${item.name}" type="button">Delete</button>
+          </div>
         </div>
       </div>
     </article>`
     )
     .join('');
 
+  // Attach event listeners
+  document.querySelectorAll('.btn-claimed').forEach(btn => {
+    btn.addEventListener('click', (e) => toggleClaimed(parseInt(e.target.dataset.index)));
+  });
+
+  document.querySelectorAll('.btn-delete').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      const index = parseInt(e.target.dataset.index);
+      const name = e.target.dataset.name;
+      showDeleteConfirmation(index, name);
+    });
+  });
+
   emptyState.hidden = filtered.length !== 0;
   document.querySelector('#items-count').textContent = String(listings.length);
+}
+
+function toggleClaimed(index) {
+  listings[index].claimed = !listings[index].claimed;
+  saveListings();
+  renderListings();
+}
+
+function showDeleteConfirmation(index, itemName) {
+  const confirmDelete = confirm(`Are you sure you want to delete "${itemName}"? This action cannot be undone.`);
+  if (confirmDelete) {
+    listings.splice(index, 1);
+    saveListings();
+    renderListings();
+  }
 }
 
 // Clear all filters
@@ -154,7 +188,8 @@ document.querySelector('#report-form').addEventListener('submit', (event) => {
     date: data.get('date'),
     icon: categoryIcons[data.get('category')],
     color: categoryColors[data.get('category')],
-    description: data.get('description')
+    description: data.get('description'),
+    claimed: false
   };
 
   listings.unshift(newItem);
