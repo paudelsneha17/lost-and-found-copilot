@@ -57,6 +57,7 @@ const emptyState = document.querySelector('#empty-state');
 const searchInput = document.querySelector('#search-input');
 const categoryFilter = document.querySelector('#category-filter');
 const statusFilter = document.querySelector('#status-filter');
+const clearFiltersBtn = document.querySelector('#clear-filters');
 
 function getTimeAgo(dateString) {
   const itemDate = new Date(dateString);
@@ -112,6 +113,16 @@ function renderListings() {
   emptyState.hidden = filtered.length !== 0;
   document.querySelector('#items-count').textContent = String(listings.length);
 }
+
+// Clear all filters
+function clearAllFilters() {
+  searchInput.value = '';
+  categoryFilter.value = 'all';
+  statusFilter.value = 'all';
+  renderListings();
+}
+
+clearFiltersBtn.addEventListener('click', clearAllFilters);
 
 [searchInput, categoryFilter, statusFilter].forEach((control) =>
   control.addEventListener('input', renderListings)
