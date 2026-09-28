@@ -12,14 +12,45 @@ const categoryColors = {
   other: 'yellow'
 };
 
-let listings = [
-  { name: 'Blue Hydro Flask', category: 'other', status: 'found', location: 'Library, 2nd floor', date: '2024-12-18', icon: '💧', color: 'blue', description: 'Blue 32oz bottle with a small sticker.' },
-  { name: 'Wireless Earbuds', category: 'electronics', status: 'lost', location: 'Science Hall, Room 204', date: '2024-12-17', icon: '🎧', color: 'yellow', description: 'White case, left earbud missing.' },
-  { name: 'Black Canvas Backpack', category: 'other', status: 'found', location: 'Student Union', date: '2024-12-16', icon: '🎒', color: 'mint', description: 'Black backpack with a green keychain.' },
-  { name: 'Silver Watch', category: 'other', status: 'lost', location: 'Recreation Center', date: '2024-12-15', icon: '⌚', color: 'pink', description: 'Silver watch with a dark leather strap.' },
-  { name: 'Green Knit Beanie', category: 'clothing', status: 'found', location: 'Arts Building lobby', date: '2024-12-15', icon: '🧢', color: 'purple', description: 'Forest green, one-size knit beanie.' },
-  { name: 'Student ID Card', category: 'keys-id', status: 'lost', location: 'Main quad', date: '2024-12-14', icon: '🆔', color: 'blue', description: 'Student ID in a clear plastic sleeve.' }
-];
+const STORAGE_KEY = 'campusconnect_listings';
+
+let listings = [];
+
+// Load listings from localStorage on page load
+function loadListings() {
+  const stored = localStorage.getItem(STORAGE_KEY);
+  if (stored) {
+    try {
+      listings = JSON.parse(stored);
+    } catch (e) {
+      console.error('Error loading listings from localStorage:', e);
+      listings = getDefaultListings();
+    }
+  } else {
+    listings = getDefaultListings();
+  }
+}
+
+// Get default sample listings
+function getDefaultListings() {
+  return [
+    { name: 'Blue Hydro Flask', category: 'other', status: 'found', location: 'Library, 2nd floor', date: '2024-12-18', icon: '💧', color: 'blue', description: 'Blue 32oz bottle with a small sticker.' },
+    { name: 'Wireless Earbuds', category: 'electronics', status: 'lost', location: 'Science Hall, Room 204', date: '2024-12-17', icon: '🎧', color: 'yellow', description: 'White case, left earbud missing.' },
+    { name: 'Black Canvas Backpack', category: 'other', status: 'found', location: 'Student Union', date: '2024-12-16', icon: '🎒', color: 'mint', description: 'Black backpack with a green keychain.' },
+    { name: 'Silver Watch', category: 'other', status: 'lost', location: 'Recreation Center', date: '2024-12-15', icon: '⌚', color: 'pink', description: 'Silver watch with a dark leather strap.' },
+    { name: 'Green Knit Beanie', category: 'clothing', status: 'found', location: 'Arts Building lobby', date: '2024-12-15', icon: '🧢', color: 'purple', description: 'Forest green, one-size knit beanie.' },
+    { name: 'Student ID Card', category: 'keys-id', status: 'lost', location: 'Main quad', date: '2024-12-14', icon: '🆔', color: 'blue', description: 'Student ID in a clear plastic sleeve.' }
+  ];
+}
+
+// Save listings to localStorage
+function saveListings() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(listings));
+  } catch (e) {
+    console.error('Error saving listings to localStorage:', e);
+  }
+}
 
 const listingGrid = document.querySelector('#listing-grid');
 const emptyState = document.querySelector('#empty-state');
@@ -116,6 +147,7 @@ document.querySelector('#report-form').addEventListener('submit', (event) => {
   };
 
   listings.unshift(newItem);
+  saveListings();
   renderListings();
   form.reset();
 
@@ -130,4 +162,6 @@ document.querySelector('#report-form').addEventListener('submit', (event) => {
   document.querySelector('#browse').scrollIntoView({ behavior: 'smooth' });
 });
 
+// Load listings on page load and render
+loadListings();
 renderListings();
